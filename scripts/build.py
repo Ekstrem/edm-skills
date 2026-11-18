@@ -40,6 +40,8 @@ COMMON_DIR = ROOT / "common"
 LANGUAGES_DIR = ROOT / "languages"
 OUTPUT_DIR = ROOT / "output"
 SKILLS_DIR = OUTPUT_DIR / "skills"
+PLUGIN_TEMPLATE_DIR = ROOT / "plugin-template"
+PLUGINS_DIR = OUTPUT_DIR / "plugins"
 
 # Роутер навыка: файл с передним планом (name/description) и ссылками на этапы.
 ROUTER_NAME = "skill.md"
@@ -461,6 +463,55 @@ def _bundle_summary(
     )
 
 
+def build_plugin(name: str, bundle: Path, check_only: bool) -> tuple[Path, Path | None]:
+    """Собирает DSH-плагин: cordis-обёртка вокруг пакета навыка.
+
+    Плагин = plugin-template/ (package.json + cordis.patch.yml + lib/index.js)
+    с подставленным именем скилла + assets/<name>/ (SKILL.md + references/) из
+    собранного пакета. Устанавливается в DSH через `dsh plugin add file:<каталог>`.
+    """
+    plugin_dir = PLUGINS_DIR / f"{name}-plugin"
+    zip_path = PLUGINS_DIR / f"{name}-plugin.zip"
+    if check_only:
+        return plugin_dir, None
+
+    if plugin_dir.exists():
+        shutil.rmtree(plugin_dir)
+    (plugin_dir / "lib").mkdir(parents=True, exist_ok=True)
+    (plugin_dir / "assets").mkdir(parents=True, exist_ok=True)
+
+    if not PLUGIN_TEMPLATE_DIR.is_dir():
+        raise BuildError("не найден каталог plugin-template/")
+
+    for rel in ("package.json", "cordis.patch.yml", "lib/index.js"):
+        src = PLUGIN_TEMPLATE_DIR / rel
+        if not src.is_file():
+            raise BuildError(f"plugin-template/{rel}: нет файла шаблона")
+        (plugin_dir / rel).write_text(
+            _read_text(src).replace("__SKILL_NAME__", name),
+            encoding="utf-8",
+            newline="\n",
+        )
+
+    # assets/<name>/ — собранный пакет навыка (SKILL.md + references/).
+    shutil.copytree(bundle, plugin_dir / "assets" / name)
+
+    zip_bundle(f"{name}-plugin", plugin_dir, zip_path)
+    return plugin_dir, zip_path
+
+
+def _plugin_summary(
+    slug: str, plugin_dir: Path, zip_path: Path | None, check_only: bool
+) -> str:
+    prefix = "проверен " if check_only else "собран   "
+    target = plugin_dir.relative_to(ROOT).as_posix()
+    if zip_path is None:
+        size = ""
+    else:
+        size = f", {len(zip_path.read_bytes()) / 1024:.1f} KB zip"
+    return f"  {prefix} {slug:<8} DSH-плагин → {target}/ ({plugin_dir.name}/){size}"
+
+
 def build_one(
     slug: str,
     config: dict[str, object],
@@ -512,6 +563,8 @@ def matrix_lines(
                 "path": f"output/{config['output_file']}",
                 "file": str(config["output_file"]),
                 "bundle": f"output/skills/{config['name']}.zip",
+                "plugin": f"output/plugins/{config['name']}-plugin",
+                "plugin_zip": f"output/plugins/{config['name']}-plugin.zip",
             }
         )
         publish_repo = str(config.get("publish_repo") or "").strip()
@@ -596,6 +649,10 @@ def main(argv: list[str] | None = None) -> int:
                 slug, configs[slug], manifest, args.check
             )
             print(_bundle_summary(slug, bundle, zip_path, stages, args.check))
+            plugin_dir, plugin_zip = build_plugin(
+                str(configs[slug]["name"]), bundle, args.check
+            )
+            print(_plugin_summary(slug, plugin_dir, plugin_zip, args.check))
         return 0
 
     except BuildError as exc:

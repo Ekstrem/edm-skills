@@ -1,0 +1,7 @@
+# DSH bundle patch — __SKILL_NAME__ skill plugin.
+#
+# Монтирует запись скилл-плагина в профиль. Собирается scripts/build.py из
+# plugin-template/ + собранного пакета навыка.
+- insert:
+    - id: __SKILL_NAME__
+      name: '__SKILL_NAME__-plugin'

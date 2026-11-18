@@ -122,6 +122,36 @@ jobs:
           if-no-files-found: error
           retention-days: 90
 
+      - name: Check skill plugin
+        run: |
+          set -euo pipefail
+          plugin_zip="${{ matrix.plugin_zip }}"
+          if [ ! -s "$plugin_zip" ]; then
+            echo "::error::плагин $plugin_zip не создан или пуст"
+            exit 1
+          fi
+          if ! unzip -l "$plugin_zip" | grep -q "package.json"; then
+            echo "::error::в $plugin_zip нет package.json"
+            exit 1
+          fi
+          if ! unzip -l "$plugin_zip" | grep -q "cordis.patch.yml"; then
+            echo "::error::в $plugin_zip нет cordis.patch.yml"
+            exit 1
+          fi
+          if ! unzip -l "$plugin_zip" | grep -q "assets/${{ matrix.name }}/SKILL.md"; then
+            echo "::error::в $plugin_zip нет assets/${{ matrix.name }}/SKILL.md"
+            exit 1
+          fi
+          echo "- плагин: \`$plugin_zip\` ($(wc -c < "$plugin_zip") байт)" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload skill plugin
+        uses: actions/upload-artifact@v4
+        with:
+          name: skill-${{ matrix.name }}-plugin
+          path: ${{ matrix.plugin_zip }}
+          if-no-files-found: error
+          retention-days: 90
+
   # Тег v* → постоянные файлы в GitHub Release (артефакты Actions живут 90 дней).
   release:
     name: Release artifacts
@@ -147,6 +177,7 @@ jobs:
           files: |
             output/*.md
             output/skills/*.zip
+            output/plugins/*.zip
           fail_on_unmatched_files: true
           generate_release_notes: true
           make_latest: true
@@ -179,6 +210,8 @@ jobs:
 
             - `<name>.zip` — пакет навыка для Claude и DSH: `<name>/SKILL.md` плюс
               `<name>/references/*.md` (распаковать в каталог навыков).
+            - `<name>-plugin.zip` — DSH-плагин: распаковать и установить командой
+              `dsh plugin add file:<распакованный каталог>`.
             - `<name>.md` — тот же контент одним файлом: читать глазами или скармливать
               агенту, который не умеет пакеты навыков.
 

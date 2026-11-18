@@ -29,6 +29,7 @@ graph LR
 |-------|---------|----------|
 | `output/<name>.md` | все этапы склеены в один самодостаточный `SKILL.md` | агенты без поддержки пакетов навыков, чтение глазами |
 | `output/skills/<name>/` + `<name>.zip` | **пакет навыка**: `SKILL.md`-роутер + `references/*.md` | Claude Agent Skills, DSH и любой агент с прогрессивным раскрытием |
+| `output/plugins/<name>-plugin/` + `<name>-plugin.zip` | **DSH-плагин**: cordis-обёртка (`package.json` + `cordis.patch.yml` + `lib/index.js`) вокруг пакета | установка в DSH командой `dsh plugin add file:<каталог>` |
 
 Порядок склейки берётся из `scripts/stages.yaml` и задан явно, а не алфавитом: этапы
 читаются последовательно (канвасы → Command API → Query API → MV → реализация).
@@ -43,7 +44,7 @@ graph LR
 ## Локальная сборка
 
 ```bash
-python scripts/build.py          # все языки: .md + пакеты + zip
+python scripts/build.py          # все языки: .md + пакеты + DSH-плагины + zip
 python scripts/build.py go       # только Go
 python scripts/build.py --check  # проверка без записи файлов
 ```
@@ -57,7 +58,7 @@ python scripts/build.py --check  # проверка без записи файл
 | Джоба | Когда | Что делает |
 |-------|-------|------------|
 | `discover` | push, PR, вручную | читает `languages/*/config.yaml` и строит матрицу языков |
-| `build` | там же | собирает каждый язык отдельной джобой, проверяет `.md` и пакет, выкладывает `skill-<name>` и `skill-<name>-bundle` |
+| `build` | там же | собирает каждый язык отдельной джобой, проверяет `.md`, пакет и DSH-плагин, выкладывает `skill-<name>`, `skill-<name>-bundle` и `skill-<name>-plugin` |
 | `release` | тег `v*` | прикрепляет собранные `.md` и `.zip` к GitHub Release |
 | `rolling-release` | push в `main` | обновляет релиз `latest` актуальной сборкой (ссылка [`/releases/latest`](https://github.com/Ekstrem/emd-skills/releases/latest) всегда на свежие файлы) |
 | `publish` | push в `main` | кладёт `SKILL.md` в репозиторий из `publish_repo` (нужен секрет `SKILL_REPO_PAT`) |
@@ -101,6 +102,21 @@ unzip edm-go.zip -d ~/.dsh/skills/
 
 Для Claude-совместимых агентов описание навыка (`description`) — единственное, по чему
 выбирается навык, поэтому держите его в пределах 500 знаков и начинайте с «Use when…».
+
+## Установка DSH-плагина
+
+`<name>-plugin.zip` — это готовый cordis-плагин: `package.json`, `cordis.patch.yml`,
+`lib/index.js` и `assets/<name>/SKILL.md` + `references/`. Распакуйте и установите:
+
+```bash
+unzip ddd-microservice-csharp-plugin.zip -d ~/ds-plugins/
+dsh plugin add file:~/ds-plugins/ddd-microservice-csharp-plugin
+```
+
+После установки скилл появится в каталоге навыков DSH под именем `<name>`
+(для C# — `ddd-microservice-csharp`). Плагин регистрирует скилл через
+`ctx.skills.registerProvider` и читает markdown из собственного `assets/` —
+пересборка скилла = пересборка плагина той же командой `python scripts/build.py`.
 
 ## Добавить язык
 
