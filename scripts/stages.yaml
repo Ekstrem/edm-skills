@@ -20,6 +20,8 @@ csharp:
   - implementation-guide
   - deployment-profiles
   - github-actions
+  - domain-tests
+  - integration-tests
   - roadmap
 
 go:

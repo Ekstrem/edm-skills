@@ -26,7 +26,9 @@ Reference-проект: [Chat](https://github.com/Ekstrem/Chat)
 | 8 | Профили деплоймента — Single → BudgetCqrs → Cqrs → Ceqrs, Dockerfile | `references/deployment-profiles.md` |
 | 9 | Kubernetes — Kustomize-манифесты под выбранный профиль | `references/kubernetes.md` |
 | 10 | CI/CD — `.github/workflows/ci.yml`, сборка, тесты, образ в GHCR | `references/github-actions.md` |
-| 11 | Roadmap улучшений CEQRS — обсуждение, не для генерации кода | `references/roadmap.md` |
+| 11 | Тесты домена — unit на каждый метод: happy-path + провал инварианта + state machine | `references/domain-tests.md` |
+| 12 | Integration-тесты — lifecycle-проекция, replay, idempotency | `references/integration-tests.md` |
+| 13 | Roadmap улучшений CEQRS — обсуждение, не для генерации кода | `references/roadmap.md` |
 
 Читай `references/*.md` по мере надобности, а не все сразу: файлы крупные, и каждый
 относится к своему этапу. Пути резолвь от каталога навыка.
