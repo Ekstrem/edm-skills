@@ -1,6 +1,6 @@
-name: "ddd-microservice-csharp"
+name: "edm-net"
 description: "Создание микросервисов на C# с DigiTFactory.Libraries, DDD, Event Sourcing, CEQRS"
-output_file: "ddd-microservice-csharp.md"
+output_file: "edm-net.md"
 language: "C#"
 test_framework: "xUnit"
 build_command: "dotnet build"

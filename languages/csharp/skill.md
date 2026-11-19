@@ -1,5 +1,5 @@
 ---
-name: ddd-microservice-csharp
+name: edm-net
 description: "Use when designing or implementing an event-driven microservice on .NET/C# with DDD, Event Sourcing and CEQRS on DigiTFactory.Libraries (событийно-управляемые микросервисы на .NET). Covers the five design canvases, Command/Query API, Materialized Views, layer and namespace rules, deployment profiles, Kubernetes, CI/CD and the improvement roadmap."
 ---
 

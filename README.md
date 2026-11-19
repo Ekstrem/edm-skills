@@ -11,7 +11,7 @@ graph LR
     B1[languages/csharp/*.md] --> C
     B2[languages/go/*.md] --> C
     B3[languages/kotlin/*.md] --> C
-    C --> D1[output/ddd-microservice-csharp.md]
+    C --> D1[output/edm-net.md]
     C --> D2[output/edm-go.md]
     C --> D3[output/edm-kotlin.md]
     D1 --> E[GitHub Actions: artifacts]
@@ -109,12 +109,12 @@ unzip edm-go.zip -d ~/.dsh/skills/
 `lib/index.js` и `assets/<name>/SKILL.md` + `references/`. Распакуйте и установите:
 
 ```bash
-unzip ddd-microservice-csharp-plugin.zip -d ~/ds-plugins/
-dsh plugin add file:~/ds-plugins/ddd-microservice-csharp-plugin
+unzip edm-net-plugin.zip -d ~/ds-plugins/
+dsh plugin add file:~/ds-plugins/edm-net-plugin
 ```
 
 После установки скилл появится в каталоге навыков DSH под именем `<name>`
-(для C# — `ddd-microservice-csharp`). Плагин регистрирует скилл через
+(для C# — `edm-net`). Плагин регистрирует скилл через
 `ctx.skills.registerProvider` и читает markdown из собственного `assets/` —
 пересборка скилла = пересборка плагина той же командой `python scripts/build.py`.
 
