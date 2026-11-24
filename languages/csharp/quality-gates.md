@@ -25,4 +25,6 @@
 | QG-612 | Без sync-over-async | никаких `.Result` / `.Wait()` / `.GetAwaiter().GetResult()` — только `async`/`await` |
 | QG-701 | Нейминг тестов | имя теста `Method_When_Should` (минимум два `_`) |
 | QG-702 | Покрытие агрегата | `AggregateCoverage.Verify<T>` + `VerifyInvariants` в Domain.Tests |
+| QG-209 | Actor из авторизации, не из тела | `ClientId`/actor берётся из JWT `sub` (`IClientContext`), не из Request DTO |
+| QG-306 | Проекция пишет/читает через store | проекция пишет через `IReadModelStore.UpsertAsync`, читает через `IReadRepository.GetByIdAsync`; surrogate `Id` (не composite PK) |
 | QG-614 | Health check | `AddHealthChecks()` + `MapHealthChecks("/health")` вместо самодельного эндпоинта |

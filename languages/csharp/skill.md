@@ -90,6 +90,11 @@ Reference-проект: [Chat](https://github.com/Ekstrem/Chat). «Абстра�
 Запрещено объявлять готовность при красных тестах или падающей сборке: исправь и
 перезапусти, а не отчитывайся «почти готово».
 
+Hardening (НЕ блокирует core-DoD, подключается только если выбран канвасами/профилем):
+авторизация/ownership, идемпотентность команд (Idempotency-Key/CorrelationToken),
+optimistic concurrency (ExpectedVersion), outbox, Kafka/Cqrs/Ceqrs, snapshots.
+Их отсутствие — не дефект первой генерации; их наличие при сломанном core — не засчитывается.
+
 ## Ключевые принципы
 
 1. **Домен в центре.** Domain зависит ТОЛЬКО от `DigiTFactory.Libraries.SeedWorks`.
