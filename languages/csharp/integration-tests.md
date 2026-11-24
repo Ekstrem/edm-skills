@@ -54,3 +54,12 @@ private static {Context}ReadModel ToReadModel(I{Context}AnemicModel model)
 ```bash
 dotnet test src/{Context}.IntegrationTests
 ```
+
+В DSH-песочнице `dotnet test` падает (`testhost`, Win32Exception 5). Используй
+in-process раннер `DigiTFactory.Libraries.TestRunner` (обход S6 из library-known-issues):
+
+```bash
+dotnet run --project tools/TestRunner -- src/{Context}.IntegrationTests/bin/Release/net8.0/{Context}.IntegrationTests.dll
+```
+
+Не объявляй тесты зелёными без фактического прогона раннером.
