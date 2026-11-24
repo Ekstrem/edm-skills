@@ -27,4 +27,6 @@
 | QG-702 | Покрытие агрегата | `AggregateCoverage.Verify<T>` + `VerifyInvariants` в Domain.Tests |
 | QG-209 | Actor из авторизации, не из тела | `ClientId`/actor берётся из JWT `sub` (`IClientContext`), не из Request DTO |
 | QG-306 | Проекция пишет/читает через store | проекция пишет через `IReadModelStore.UpsertAsync`, читает через `IReadRepository.GetByIdAsync`; surrogate `Id` (не composite PK) |
+| QG-706 | Self-hosted API suite | анализатор QG706 (наличие `WebApplicationFactory`): каждый command/query endpoint happy + негатив, owner из token |
+| QG-707 | Поведение проекций | анализатор QG707 + `ProjectionCoverage.VerifyRebuildEquivalence`/`VerifyIdempotency` в IntegrationTests |
 | QG-614 | Health check | `AddHealthChecks()` + `MapHealthChecks("/health")` вместо самодельного эндпоинта |
