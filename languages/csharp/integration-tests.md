@@ -26,15 +26,28 @@ public void Full_Lifecycle_Command_Then_Query_ReturnsAllFields()
 
 ## Обязательные интеграционные тесты
 
-| QG | Тест | Что проверяет |
-|----|------|---------------|
-| QG-704 | full lifecycle Manual + Garmin | Command → Event Store → replay → projection → Query; каждый шаг доехал до read-модели |
-| QG-307 | incremental == rebuild | Rebuild даёт то же состояние, что incremental projection |
-| QG-308/309 | round-trip каждого VO | типизированная сериализация туда-обратно, никаких `{}` |
-| QG-305 | idempotency/versioning | повторное или старое событие не меняет MV |
+Минимальный набор (эталон — DSv4FwQSwSAbyL и ACO5.5; каждый пункт — реально выполняемый
+тест, а не наличие файла):
+
+| QG | Группа | Что проверяет |
+|----|--------|---------------|
+| QG-706 | command endpoints | **каждый** command: happy-path + негатив (невалидные входные данные, 400/409) |
+| QG-706 | query endpoints | **каждый** query: happy-path + отсутствующий/чужой id |
+| QG-706 | transport/auth | 401/403 на каждый endpoint, malformed token/JSON, 405, UTF-8 |
+| QG-706 | владелец | owner только из token; `clientId` в теле игнорируется; чужие записи не видны |
+| QG-707 | проекции | идемпотентность (повторная доставка), rebuild == incremental, stale/version-conflict не меняет MV |
+| QG-704 | full lifecycle | Command → Event Store → replay → projection → Query; Manual + Garmin |
 | QG-705 | event identity/version | ID записи не пустой; новая версия увеличивается ровно один раз |
 | QG-601 | traceability | Command → endpoint → aggregate → event → VO → MV → Query DTO |
-| — | state machine | запрещённые переходы состояний |
+
+Дополнительно к обязательному — то, что не должен терять текущий BC-Journal при
+выравнивании с эталоном:
+
+- durable publish + `await completion` (журнал завершения);
+- регрессия `Command.Version`;
+- DI composition + runtime host smoke;
+- создание схемы на свежем Postgres + сквозная проверка read model на реальной БД;
+- контракт soft delete с сохранением разрешимости истории.
 
 Перед merge нужен фактический `dotnet test` с TRX/логом и хотя бы один прогон на настоящей
 СУБД (Testcontainers или временная локальная БД). InMemory остаётся быстрым локальным контуром,
