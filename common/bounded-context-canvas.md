@@ -65,13 +65,13 @@ Bounded Context Canvas — стратегический артефакт. Оди
 6. «Какие бизнес-правила обязательно должны соблюдаться?» → секция 8
 7. «С какими другими контекстами он взаимодействует?» → секция 10
 
-## Маппинг на Go-код
+## Маппинг на C#-код
 
 | Секция канваса | Что генерируется |
 |---------------|-----------------|
-| Имя | `var {Context}BoundedContext = definition.BoundedContextDescription{ContextName: "{Context}", MicroserviceVersion: 1}` |
-| Inbound | chi-роуты в `internal/api/router.go`, Command structs в `internal/application/commands/` |
-| Outbound | `events.DomainEvent`, публикация через `events.EventBus` |
-| Ubiquitous Language | Имена Value Objects structs, методов агрегата, typed constants |
-| Business Decisions | `invariants.BusinessOperationSpecification` в `internal/domain/specifications/` |
-| Зависимости | `definition.InteractionOfBoundedContexts`, AntiCorruptionLayer при необходимости |
+| Имя | `{Context}BoundedContextDescription : IBoundedContextDescription` (`ContextName`, `MicroserviceVersion`) |
+| Inbound | Контроллеры в `src/{Context}.Api/Controllers/`, Command-классы в `src/{Context}.Application/Commands/` |
+| Outbound | `DomainEvent<T>`, публикация через `IEventBus` |
+| Ubiquitous Language | Имена Value Objects (интерфейсы/классы), методы агрегата |
+| Business Decisions | `IBusinessOperationValidator<T,M>` в `src/{Context}.Domain/Specifications/` |
+| Зависимости | `InteractionOfBoundedContextsEnum`, AntiCorruptionLayer при необходимости |

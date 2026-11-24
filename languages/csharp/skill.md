@@ -22,16 +22,28 @@ Reference-проект: [Chat](https://github.com/Ekstrem/Chat)
 | 4 | Query API — GET-эндпоинты и Response DTO строго из колонок Materialized View | `references/query-api.md` |
 | 5 | Materialized Views — таблицы Read Store и правила проекции событий | `references/materialized-views.md` |
 | 6 | Реализация на C# — слои, пространства имён, шаблоны кода | `references/implementation-guide.md` |
-| 7 | Инфраструктура и потоки данных — Command DB, Event Store, Read Store, шина | `references/ceqrs-data-flows.md` |
-| 8 | Профили деплоймента — Single → BudgetCqrs → Cqrs → Ceqrs, Dockerfile | `references/deployment-profiles.md` |
-| 9 | Kubernetes — Kustomize-манифесты под выбранный профиль | `references/kubernetes.md` |
-| 10 | CI/CD — `.github/workflows/ci.yml`, сборка, тесты, образ в GHCR | `references/github-actions.md` |
-| 11 | Тесты домена — unit на каждый метод: happy-path + провал инварианта + state machine | `references/domain-tests.md` |
-| 12 | Integration-тесты — lifecycle-проекция, replay, idempotency | `references/integration-tests.md` |
-| 13 | Roadmap улучшений CEQRS — обсуждение, не для генерации кода | `references/roadmap.md` |
+| 7 | Известные дефекты библиотеки — санкционированные обходы | `references/library-known-issues.md` |
+| 8 | Quality Gates — каталог QG и эталонные решения | `references/quality-gates.md` |
+| 9 | Инфраструктура и потоки данных — Command DB, Event Store, Read Store, шина | `references/ceqrs-data-flows.md` |
+| 10 | Профили деплоймента — Single → BudgetCqrs → Cqrs → Ceqrs, Dockerfile | `references/deployment-profiles.md` |
+| 11 | Kubernetes — Kustomize-манифесты под выбранный профиль | `references/kubernetes.md` |
+| 12 | CI/CD — `.github/workflows/ci.yml`, сборка, тесты, образ в GHCR | `references/github-actions.md` |
+| 13 | Тесты домена — unit на каждый метод: happy-path + провал инварианта + state machine | `references/domain-tests.md` |
+| 14 | Integration-тесты — lifecycle-проекция, replay, idempotency | `references/integration-tests.md` |
+| 15 | Roadmap улучшений CEQRS — обсуждение, не для генерации кода | `references/roadmap.md` |
 
 Читай `references/*.md` по мере надобности, а не все сразу: файлы крупные, и каждый
 относится к своему этапу. Пути резолвь от каталога навыка.
+
+## Шаг 0 — установление домена
+
+1. Прежде чем проектировать — проверь рабочую папку на существующие канвасы
+   (`Docs/Discovery/*.md` или любые `*-canvas.md`). Найденные канвасы — это ТЗ:
+   читай их обязательно и следуй им.
+2. Домен не выдумывай: предметная область, ubiquitous language, инварианты и события
+   берутся из канвасов пользователя, а не из догадок.
+3. При конфликте или неоднозначности в канвасах — задай **один** уточняющий вопрос и
+   дождись ответа. Не выбирай трактовку «по-своему».
 
 ## Порядок работы
 
@@ -55,6 +67,22 @@ Reference-проект: [Chat](https://github.com/Ekstrem/Chat)
 распределённые профили и snapshots подключаются только если явно выбраны канвасами
 или эксплуатационным профилем. Их отсутствие не является core-дефектом.
 
+## Definition of Done первой генерации
+
+Первая генерация считается готовой только когда ВСЁ перечисленное выполнено:
+
+- все команды и queries из канвасов реализованы (каждая Handled Command → эндпоинт,
+  каждый сценарий чтения → Query API);
+- Rebuild работает и совпадает с incremental-проекцией;
+- `dotnet build -warnaserror` проходит с 0 ошибок и 0 предупреждений;
+- тесты зелёные (`dotnet test` без падений);
+- миграции накатываются на чистую БД;
+- Dockerfile собирается и запускается;
+- CI (`.github/workflows/ci.yml`) проходит: restore → build → unit → integration.
+
+Запрещено объявлять готовность при красных тестах или падающей сборке: исправь и
+перезапусти, а не отчитывайся «почти готово».
+
 ## Ключевые принципы
 
 1. **Домен в центре.** Domain зависит ТОЛЬКО от `DigiTFactory.Libraries.SeedWorks`.
@@ -68,6 +96,8 @@ Reference-проект: [Chat](https://github.com/Ekstrem/Chat)
    `DigiTFactory.Libraries.*`: `EventBus.InMemory`/`Kafka`/`Postgres`,
    `CommandRepository.Postgres`/`Mongo`, `ReadRepository.Postgres`/`Redis`/`Scylla`.
    Пакеты опубликованы на nuget.org, `dotnet restore` работает без токена.
+   Единственное санкционированное исключение — обходы из
+   `references/library-known-issues.md`; всё прочее — запрещено.
 7. **Своё пишем только уникальное для контекста**: `I{Context}`/`{Context}`, VO, агрегат,
    anemic model, спецификации, команды/запросы MediatR, контроллеры, DTO, read models,
    проекции, тесты. Точные пространства имён — в `references/implementation-guide.md`.

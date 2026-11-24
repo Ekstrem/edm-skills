@@ -18,6 +18,8 @@ common:
 
 csharp:
   - implementation-guide
+  - library-known-issues
+  - quality-gates
   - deployment-profiles
   - github-actions
   - domain-tests

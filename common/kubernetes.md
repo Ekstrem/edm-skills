@@ -50,7 +50,7 @@ kind: Namespace
 metadata:
   name: {ctx}
   labels:
-    app.kubernetes.io/part-of: {ctx}-go
+    app.kubernetes.io/part-of: {ctx}
 ```
 
 ### secret.yaml
@@ -113,7 +113,7 @@ spec:
     spec:
       containers:
         - name: {ctx}-app
-          image: ghcr.io/{owner}/{ctx}-go:single
+          image: ghcr.io/{owner}/{ctx}:single
           ports: [{containerPort: 8080}]
           envFrom:
             - configMapRef: {name: {ctx}-config}
@@ -166,10 +166,9 @@ ConfigMap: EVENT_BUS_STRATEGY=Kafka, Kafka bootstrap servers
 - **Liveness:** `GET /health` (initialDelay: 5s, period: 15s)
 - **Readiness:** `GET /health` (initialDelay: 3s, period: 5s)
 
-Если `/health` эндпоинт не реализован — добавь в router:
-```go
-r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
-    w.WriteHeader(http.StatusOK)
-    w.Write([]byte(`{"status":"ok"}`))
-})
+Если `/health` эндпоинт не реализован — добавь в `Program.cs`:
+```csharp
+builder.Services.AddHealthChecks();
+// ...
+app.MapHealthChecks("/health");
 ```
