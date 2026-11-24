@@ -108,3 +108,22 @@ Reference-проект: [Chat](https://github.com/Ekstrem/Chat). «Абстра�
 7. **Своё пишем только уникальное для контекста**: `I{Context}`/`{Context}`, VO, агрегат,
    anemic model, спецификации, команды/запросы MediatR, контроллеры, DTO, read models,
    проекции, тесты. Точные пространства имён — в `references/implementation-guide.md`.
+
+## Правила процесса и качества
+
+1. **Источники версий пакетов** (по возрастанию доверия): nuget.org flatcontainer →
+   GitHub master (`csproj`, не README — README отстаёт) → локальный checkout
+   `DigiTFactory.Libraries` (может быть новее). Пакет не опубликован — собрать `.nupkg`
+   из pinned-коммита и зафиксировать коммит в `docs/`.
+2. **Кодировка исходников** — только UTF-8. Правь .cs/.md инструментами write/edit;
+   PowerShell `-replace`/`Set-Content` по содержимому .cs запрещён (CP1251 → mojibake).
+3. **Геометрия артефактов** — ровно пять канвасов с фиксированными именами
+   (`1-bounded-context-canvas.md` … `5-materialized-views.md`); путь согласуй в шаге 0.
+   Лишние `plan.md`/прочие — только по запросу.
+4. **HTTP-контракт не импровизировать**: эндпоинты, заголовки, коды, имена DTO — строго
+   из канвасов. Отклонение — отдельный файл-обоснование + подтверждение пользователя.
+5. **Фиктивные конфиги запрещены**: профиль либо работает end-to-end, либо помечен
+   `scaffold`; канвасы/README не описывают нереализованное.
+6. **Тест-стек**: InMemory `WebApplicationFactory` для быстрых сценариев; env-var
+   fallback без Docker; `--artifacts-path` против зомби-testhost; обязательный тест
+   `incremental == rebuild` для проекций; в песочнице — in-process раннер (S6).
