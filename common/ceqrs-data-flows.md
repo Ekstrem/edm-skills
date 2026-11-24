@@ -48,6 +48,25 @@ Client → GET /api/{context}/{id}
 
 **Критично:** Query Side читает только Read Store — НЕ Domain и НЕ Event Store.
 
+## Сериализация Value Objects
+
+Типизированная сериализация — через `DigiTFactory.Libraries.SeedWorks.Serialization`:
+
+- `IValueObjectSerializer` — единый порт: `Serialize(IDictionary<string,IValueObject>)` / `Deserialize`.
+- `ValueObjectSerializerFactory.Create(format, registry)` — выбор формата; `CreateDefault()` = JSON-envelope.
+- `ValueObjectTypeRegistry.Register<T>(alias)` — стабильные дискриминаторы типов.
+
+**Выбор формата:**
+
+| Формат | Где применять |
+|--------|---------------|
+| `JsonEnvelope` (default) | PostgreSQL JSONB (Event Store), InMemory-шина — читаемый, нативный JSONB |
+| `Protobuf` | Kafka/шина, где важен размер |
+| `MessagePack` | компромисс JSON↔Protobuf, тоже для шины |
+
+Правило: Event Store и InMemory-шина — всегда JSON-envelope; бинарные форматы — только
+для межпроцессной шины, и лишь если размер стал узким местом.
+
 ## Версия события и оптимистичная блокировка
 
 У события две разные версии — не путать:
