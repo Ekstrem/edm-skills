@@ -10,7 +10,10 @@ description: "Use when designing or implementing an event-driven microservice on
 
 Платформа: **.NET 8, C#, ASP.NET Core, MediatR, EF Core, Autofac, DigiTFactory.Libraries**.
 
-Reference-проект: [Chat](https://github.com/Ekstrem/Chat)
+Reference-проект: [Chat](https://github.com/Ekstrem/Chat). «Абстрактный агрегат» в его
+истории — это легаси-пакет `DigiTFactory.Libraries.AbstractAggregate` (metadata-driven,
+**не использовать**): бери plain-агрегат из `references/implementation-guide.md`, а не
+историю Chat до этого пакета.
 
 ## Маршрут по этапам
 
