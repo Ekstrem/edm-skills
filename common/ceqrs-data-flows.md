@@ -48,6 +48,29 @@ Client → GET /api/{context}/{id}
 
 **Критично:** Query Side читает только Read Store — НЕ Domain и НЕ Event Store.
 
+## Версия события и оптимистичная блокировка
+
+У события две разные версии — не путать:
+
+| Поле | Смысл | Использование |
+|------|-------|---------------|
+| `DomainEvent.Version` | версия агрегата, **над которой выполнялась команда** (acted-on) | оптимистичная блокировка |
+| `DomainEvent.CommandVersion` | = `CommandToAggregate.Version` = timestamp момента прохождения api gw | **новая** версия агрегата после процессинга события |
+
+Правила работы:
+
+1. Handler загружает агрегат с его **текущей** версией и передаёт эту версию как
+   «acted-on» в команду. Если агрегат за это время изменился — это конфликт версии,
+   команда отклоняется.
+2. `CommandToAggregate.Version` — это `DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()`
+   на границе api gw; именно он становится новой версией агрегата после применения события.
+3. Event Store пишет строку события с версией = `CommandVersion`; уникальность — `(Id, CommandVersion)`.
+   НЕ вычислять версию через `GetEventCountAsync(id) + 1` — это ломает семантику acted-on.
+4. Replay сортирует события по `CommandVersion`.
+5. Первая команда: acted-on `Version == 0` (или default), `CommandVersion > 0`.
+6. Нарушение уникальности `(Id, CommandVersion)` = конфликт версии — превращать в явную
+   ошибку (typed version-conflict exception), а не в generic DB error.
+
 ## Реализации инфраструктуры
 
 ### Event Bus
@@ -77,5 +100,5 @@ Client → GET /api/{context}/{id}
 
 При разделении на деплойменты — eventual consistency между Command и Query.
 Стратегии митигации:
-- Оптимистичная блокировка через Version (составной ключ Id + Version)
+- Оптимистичная блокировка через acted-on `Version`; новая версия события — `CommandVersion`
 - Идемпотентность проекций (version check)
