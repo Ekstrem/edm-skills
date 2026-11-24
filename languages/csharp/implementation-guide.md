@@ -169,6 +169,11 @@ public class {Command}Command : IRequest<{Context}OperationResult>
 ```
 
 ### Command Handler
+
+Handler не собирает AnemicModel/Root/State и не вызывает доменный builder. Бизнес-метод
+агрегата сам читает текущее состояние и создаёт новую модель. Handler загружает агрегат,
+передаёт только входные VO/примитивы и дожидается durable-publish через completion.
+
 ```csharp
 using MediatR;
 using DigiTFactory.Libraries.SeedWorks.Events;
@@ -176,16 +181,33 @@ using DigiTFactory.Libraries.SeedWorks.Result;
 
 public class {Command}Handler : IRequestHandler<{Command}Command, {Context}OperationResult>
 {
-    private readonly I{Context}AggregateProvider _provider;
+    private readonly IAggregateProviderWithCompletion<I{Context}, I{Context}Aggregate> _provider;
+
     public async Task<{Context}OperationResult> Handle({Command}Command request, CancellationToken ct)
     {
-        var aggregate = await _provider.GetAggregateAsync(request.AggregateId, ct);
-        var command = CommandToAggregate.Commit(Guid.NewGuid(), nameof({Command}), ...);
-        var model = AnemicModel.Create(request.AggregateId, command, /* VOs */);
-        var result = aggregate.{BusinessMethod}(model, command);
+        var (aggregate, completion) = await _provider.GetAggregateWithCompletionAsync(request.AggregateId, ct);
+        var result = aggregate.{BusinessMethod}(request.{Input});  // sync, без сборки модели
+        await completion;                                         // событие durable в Event Store
         return new {Context}OperationResult { /* маппинг */ };
     }
 }
+```
+
+Антипример — состояние собирается в Application:
+
+```csharp
+// Запрещено QG-213:
+builder.WithRoot(AggregateState.Completed);
+var next = builder.Build();
+aggregate.Complete(next);
+```
+
+Правильная сигнатура бизнес-метода принимает входные данные, а не новую модель:
+
+```csharp
+AggregateResult<I{Context}, I{Context}AnemicModel> SpecifyDuration(
+    IDuration duration,
+    CommandToAggregate command);
 ```
 
 ### Query

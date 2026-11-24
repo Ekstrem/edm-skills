@@ -5,9 +5,9 @@ Unit-тесты проверяют бизнес-логику агрегата б
 
 ## Правило покрытия (QG-702)
 
-Каждый публичный метод агрегата, возвращающий `AggregateResult`, обязан иметь хотя бы
-один тест. Это покрытие, а не синтаксис — его проверяет рефлексивный coverage-assertion
-из `DigiTFactory.Libraries.Testing`, а не Roslyn-анализатор:
+Каждый публичный метод агрегата, возвращающий `AggregateResult`, и каждый инвариант обязаны
+иметь тест. Рефлексивные coverage-assertion из `DigiTFactory.Libraries.Testing` проверяют
+фактическое покрытие; анализатор QG-702 падает на сборке, если оба вызова отсутствуют:
 
 ```csharp
 using System.Reflection;
@@ -16,12 +16,18 @@ using Xunit;
 
 public class AggregateCoverageTests
 {
+    private static bool IsTestMethod(System.Reflection.MethodInfo m)
+        => m.GetCustomAttributes(typeof(FactAttribute), true).Length > 0
+        || m.GetCustomAttributes(typeof(TheoryAttribute), true).Length > 0;
+
     [Fact]
-    public void EveryBusinessMethod_HasTest()
-        => AggregateCoverage.Verify<Aggregate>(
-            Assembly.GetExecutingAssembly(),
-            m => m.GetCustomAttributes(typeof(FactAttribute), true).Length > 0
-              || m.GetCustomAttributes(typeof(TheoryAttribute), true).Length > 0);
+    public void Aggregate_WhenBusinessMethodAdded_ShouldHaveTest()
+        => AggregateCoverage.Verify<Aggregate>(Assembly.GetExecutingAssembly(), IsTestMethod);
+
+    [Fact]
+    public void Aggregate_WhenInvariantAdded_ShouldHaveFailureTest()
+        => AggregateCoverage.VerifyInvariants(
+            typeof(Aggregate).Assembly, Assembly.GetExecutingAssembly(), IsTestMethod);
 }
 ```
 

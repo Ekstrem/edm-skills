@@ -47,6 +47,14 @@ Reference-проект: [Chat](https://github.com/Ekstrem/Chat)
    (`dotnet build`, `dotnet test`), при ошибках исправь и повтори, а не предлагай
    коммитить как есть.
 
+## Core первой генерации
+
+Обязательны: канвасы, агрегат с инвариантами и state machine, Command/Query API,
+сохранение событий, replay, проекции, Rebuild и тесты этих сценариев.
+Авторизация, ownership, идемпотентность команд, optimistic concurrency, outbox,
+распределённые профили и snapshots подключаются только если явно выбраны канвасами
+или эксплуатационным профилем. Их отсутствие не является core-дефектом.
+
 ## Ключевые принципы
 
 1. **Домен в центре.** Domain зависит ТОЛЬКО от `DigiTFactory.Libraries.SeedWorks`.

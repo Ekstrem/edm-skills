@@ -8,26 +8,22 @@ CEQRS (Command Event Query Responsibility Segregation) — три деплойм
 ## Деплоймент 1: Command (приём и исполнение команд)
 
 ```
-Client → POST /api/{context}
-  → ChatHandler.{Command}(w, r)
-    → json.Decode(r.Body) → Request DTO
-    → {Command}Handler.Handle(ctx, cmd)
-      → AggregateProvider.GetAggregate(ctx, id)
-        → eventStore.GetByID(ctx, id) — READ (восстановление агрегата)
-        → NewAggregate(scope) + обернуть в Notifier
-      → notifier.Execute(ctx, opName, model, cmdData)
-        → aggregate.Operations[opName].Handle(model, cmd, scope)
-          → result.NewOperationData(old, new)
-          → invariants.ValidateCommand(data, bc, specs...)
-            → Assertions → Validators → AggregateResult
-        → busAdapter.OnResult(ctx, aggResult)
-          → eventStore.SaveEvent(ctx, entry) — WRITE Event Store
-          → eventBus.Publish(ctx, domainEvent) — PUBLISH
-    → json.Encode → ChatOperationResult
-  → 200 OK / 400 Bad Request
+Client → Command API
+  → Command Handler
+    → AggregateProvider.GetAggregateWithCompletionAsync(id)
+      → Event Store replay → Aggregate + Notifier
+    → aggregate.BusinessMethod(...) — синхронно
+      → Notifier → BusAdapter.PublishAsync(domainEvent)
+        → Event Bus
+          → 1. EventStoreHandler.HandleAsync — durable WRITE, await
+          → 2. ProjectionHandler — MV только после успешного сохранения, async
+    → await completion — завершено после durable-записи
+  → 200 OK / ошибка
 ```
 
-**Критично:** BusAdapter сохраняет событие в Event Store И публикует в шину.
+**Критично:** BusAdapter только публикует. Event Store и MV — подписчики шины.
+Rejected/Exception события не сохраняются и не проецируются. Ошибка Event Store
+пробрасывается вызывающему; ошибка проекции допустима только при работающем Rebuild.
 
 ## Деплоймент 2: Event (обработка событий)
 
@@ -50,7 +46,7 @@ Client → GET /api/{context}/{id}
   → 200 OK (массив событий)
 ```
 
-**Критично:** Query Side читает из Event Store или Read Store — НЕ из Domain.
+**Критично:** Query Side читает только Read Store — НЕ Domain и НЕ Event Store.
 
 ## Реализации инфраструктуры
 
@@ -60,7 +56,7 @@ Client → GET /api/{context}/{id}
 |-----------|------------|-----------|
 | InMemory | `inmemory.New(logger)` | Dev, тесты |
 | Kafka | `kafka.New(options, logger)` | Продакшен, высокая нагрузка |
-| Postgres | `postgres.New(pool, options, logger)` | Outbox, транзакционная гарантия |
+| Postgres | `postgres.New(pool, options, logger)` | Dev/Single-фолбэк (outbox), не основной профиль |
 
 ### Command DB (Event Store)
 
