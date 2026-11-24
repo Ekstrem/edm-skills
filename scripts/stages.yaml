@@ -27,6 +27,7 @@ csharp:
   - implementation-guide
   - library-known-issues
   - quality-gates
+  - wave-playbook
   - deployment-profiles
   - github-actions
   - domain-tests

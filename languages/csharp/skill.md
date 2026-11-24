@@ -24,13 +24,14 @@ Reference-проект: [Chat](https://github.com/Ekstrem/Chat)
 | 6 | Реализация на C# — слои, пространства имён, шаблоны кода | `references/implementation-guide.md` |
 | 7 | Известные дефекты библиотеки — санкционированные обходы | `references/library-known-issues.md` |
 | 8 | Quality Gates — каталог QG и эталонные решения | `references/quality-gates.md` |
-| 9 | Инфраструктура и потоки данных — Command DB, Event Store, Read Store, шина | `references/ceqrs-data-flows.md` |
-| 10 | Профили деплоймента — Single → BudgetCqrs → Cqrs → Ceqrs, Dockerfile | `references/deployment-profiles.md` |
-| 11 | Kubernetes — Kustomize-манифесты под выбранный профиль | `references/kubernetes.md` |
-| 12 | CI/CD — `.github/workflows/ci.yml`, сборка, тесты, образ в GHCR | `references/github-actions.md` |
-| 13 | Тесты домена — unit на каждый метод: happy-path + провал инварианта + state machine | `references/domain-tests.md` |
-| 14 | Integration-тесты — lifecycle-проекция, replay, idempotency | `references/integration-tests.md` |
-| 15 | Roadmap улучшений CEQRS — обсуждение, не для генерации кода | `references/roadmap.md` |
+| 9 | Wave-playbook — параллельные слои и замороженные контракты для большой генерации | `references/wave-playbook.md` |
+| 10 | Инфраструктура и потоки данных — Command DB, Event Store, Read Store, шина | `references/ceqrs-data-flows.md` |
+| 11 | Профили деплоймента — Single → BudgetCqrs → Cqrs → Ceqrs, Dockerfile | `references/deployment-profiles.md` |
+| 12 | Kubernetes — Kustomize-манифесты под выбранный профиль | `references/kubernetes.md` |
+| 13 | CI/CD — `.github/workflows/ci.yml`, сборка, тесты, образ в GHCR | `references/github-actions.md` |
+| 14 | Тесты домена — unit на каждый метод: happy-path + провал инварианта + state machine | `references/domain-tests.md` |
+| 15 | Integration-тесты — lifecycle-проекция, replay, idempotency | `references/integration-tests.md` |
+| 16 | Roadmap улучшений CEQRS — обсуждение, не для генерации кода | `references/roadmap.md` |
 
 Читай `references/*.md` по мере надобности, а не все сразу: файлы крупные, и каждый
 относится к своему этапу. Пути резолвь от каталога навыка.
@@ -40,9 +41,12 @@ Reference-проект: [Chat](https://github.com/Ekstrem/Chat)
 1. Прежде чем проектировать — проверь рабочую папку на существующие канвасы
    (`Docs/Discovery/*.md` или любые `*-canvas.md`). Найденные канвасы — это ТЗ:
    читай их обязательно и следуй им.
-2. Домен не выдумывай: предметная область, ubiquitous language, инварианты и события
+2. **Существующие канвасы не перезаписывать.** Дополнения — только отдельным файлом
+   или в явной ревизии контракта, не затирая исходник (случай «DeepSeek v4 Flash wQG
+   перезаписал вход»).
+3. Домен не выдумывай: предметная область, ubiquitous language, инварианты и события
    берутся из канвасов пользователя, а не из догадок.
-3. При конфликте или неоднозначности в канвасах — задай **один** уточняющий вопрос и
+4. При конфликте или неоднозначности в канвасах — задай **один** уточняющий вопрос и
    дождись ответа. Не выбирай трактовку «по-своему».
 
 ## Порядок работы
