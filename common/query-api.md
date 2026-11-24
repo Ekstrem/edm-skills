@@ -36,17 +36,16 @@
 
 ```
 GET /api/{context}/{id}
-  → {Context}Controller.GetById([FromRoute] Guid id)
-    → IMediator.Send(Get{Context}ByIdQuery) → Get{Context}ByIdHandler.Handle(query, ct)
-      → IReadRepository.GetByIdAsync(id)   // только Read Store, не Event Store
-        → SELECT * FROM read_model.{table} WHERE id = @id
+  → GetChatByIdHandler.Handle(ctx, id)
+    → eventStore.GetByID(ctx, id) или readStore.GetByIDAsync(ctx, id)
+      → SELECT * FROM read_model.{table} WHERE id = @id
 ```
 
 QueryHandler максимально простой — один вызов к Read Store.
 
 ## Шаблон артефакта
 
-````markdown
+```markdown
 # Query API: {Context}
 
 ## HTTP-эндпоинты
@@ -59,11 +58,10 @@ QueryHandler максимально простой — один вызов к Re
 ## Response DTO
 
 ### {Detail}Response
-```csharp
-public class {Detail}Response
-{
-    public string Field1 { get; init; } // ← MV: {table}.{column}
-    public int Field2 { get; init; }    // ← MV: {table}.{column}
+```go
+type {Detail}Response struct {
+    Field1 type `json:"field1"` // ← MV: {table}.{column}
+    Field2 type `json:"field2"` // ← MV: {table}.{column}
 }
 ```
 
@@ -71,7 +69,7 @@ public class {Detail}Response
 
 | Потребитель | Эндпоинты | Назначение |
 |------------|-----------|-----------|
-````
+```
 
 ## Как заполнять через диалог
 

@@ -67,17 +67,17 @@ Value Objects:
 8. «Какая ожидаемая нагрузка? Сколько запросов в секунду?» → секция 8
 9. «Сколько событий за жизнь агрегата? Как долго он живёт?» → секция 9
 
-## Маппинг на C#-код DigiTFactory.Libraries
+## Маппинг на Go-код DigiTFactory.Go.Libraries
 
 | Секция | Артефакт в коде |
 |--------|----------------|
-| 1. Name | `I{Context} : IBoundedContext`, `{Context}BoundedContextDescription`, имя `I{Context}Aggregate` |
-| 2. Description → VOs | Интерфейсы/классы в `src/{Context}.Domain/Abstraction/` и `Implementation/`: `I{Context}Root`, `I{Context}Message` и т.д. |
-| 2. Description → Root | `I{Context}Root` с ключевыми свойствами |
-| 3. State transitions | Бизнес-методы `Aggregate` (`BusinessOperationData.Commit(...).ValidateCommand(...)`), спецификации |
-| 4. Invariants | `IBusinessOperationValidator<T,M>` в `src/{Context}.Domain/Specifications/` |
+| 1. Name | `var {Context}BoundedContext = definition.BoundedContextDescription{...}`, имя `{Context}Aggregate` |
+| 2. Description → VOs | Structs в `internal/domain/{ctx}.go`: `{Context}Root`, `{Context}Message` и т.д. |
+| 2. Description → Root | `{Context}Root` struct с ключевыми полями |
+| 3. State transitions | Логика внутри `AggregateBusinessOperation.Handle()`, спецификации |
+| 4. Invariants | Structs в `internal/domain/specifications/`: реализации `invariants.BusinessOperationSpecification` |
 | 5. Corrective policies | Saga / Process Manager — Outbound Handler в Event Consumer |
-| 6. Commands | Бизнес-методы `Aggregate` + Command-классы в `src/{Context}.Application/Commands/` |
-| 7. Events | `DomainEvent<T>`, `ChangedValueObjects` в `AggregateResult` |
+| 6. Commands | Операции в `Aggregate.Operations` map + Command structs в `internal/application/commands/` |
+| 7. Events | `events.DomainEvent`, `ChangedValueObjects` в `AggregateResult` |
 | 8. Throughput | Выбор профиля деплоймента (Single → Ceqrs) |
 | 9. Size | Стратегия Event Store: FullEventSourcing / SnapshotAfterN / StateOnly |

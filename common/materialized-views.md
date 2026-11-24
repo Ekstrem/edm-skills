@@ -24,10 +24,10 @@ Materialized View (MV) — денормализованная таблица в 
 
 ## Проектирование проекции
 
-### 1. Таблица и Read Model class
+### 1. Таблица и Read Model struct
 ```
 Таблица: read_model.{name}
-Class: {Name}ReadModel
+Struct: {Name}ReadModel
 ```
 
 ### 2. Колонки
@@ -67,13 +67,13 @@ Class: {Name}ReadModel
 
 ## Обзор проекций
 
-| # | Таблица | Тип | Обслуживает Query API | Read Model class |
+| # | Таблица | Тип | Обслуживает Query API | Read Model struct |
 |---|---------|-----|----------------------|------------------|
 
 ## 1. {table_name}
 
 **Схема:** read_model
-**Class:** {Name}ReadModel
+**Struct:** {Name}ReadModel
 
 ### Колонки
 | Колонка | Тип | Источник | Query API DTO |

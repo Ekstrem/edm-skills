@@ -17,6 +17,13 @@ common:
   - kubernetes
 
 csharp:
+  - bounded-context-canvas
+  - aggregate-design-canvas
+  - command-api
+  - query-api
+  - materialized-views
+  - ceqrs-data-flows
+  - kubernetes
   - implementation-guide
   - library-known-issues
   - quality-gates

@@ -19,22 +19,21 @@
 
 **Правила:**
 - Плоская структура, НЕ повторяет доменные Value Objects
-- camelCase в JSON — ASP.NET Core отдаёт camelCase по умолчанию (`System.Text.Json`)
+- camelCase в JSON тегах (`json:"userId"`)
 - Enum-ы как строки
-- AggregateId для действий берётся из URI (`[FromRoute] string id`), не из тела
+- AggregateId для действий берётся из URI (`chi.URLParam(r, "id")`), не из тела
 - Actor для авторизованных действий берётся из контекста авторизации
 
 ## Response DTO (единый для всех команд)
 
-```csharp
-// src/{Context}.Api/Dto/{Context}OperationResponse.cs
-public class {Context}OperationResponse
-{
-    public Guid AggregateId { get; init; }
-    public long Version { get; init; }
-    public string Result { get; init; }     // "Success" | "Exception" | "WithWarnings"
-    public string[] Reasons { get; init; }
-    public bool IsSuccess { get; init; }
+```go
+// internal/api/dto/responses.go
+type {Context}OperationResponse struct {
+    AggregateID uuid.UUID `json:"aggregateId"`
+    Version     int64     `json:"version"`
+    Result      string    `json:"result"`     // "Success" | "Exception" | "WithWarnings"
+    Reasons     []string  `json:"reasons"`
+    IsSuccess   bool      `json:"isSuccess"`
 }
 ```
 
@@ -43,14 +42,14 @@ HTTP-статусы: 200 OK (Success/Warnings), 400 Bad Request (Exception).
 ## Цепочка корреляции имён
 
 ```
-Request DTO             → Command              → метод агрегата              → доменное событие
-SubscriberRequest-      → SubscriberRequest-   → aggregate.Subscriber-       → ChatSession-
-  QuestionRequest         QuestionCommand        RequestQuestion(model, command)   Created
+Request DTO             → Command struct           → метод агрегата              → доменное событие
+SubscriberRequest-      → SubscriberRequest-       → aggregate.Subscriber-       → ChatSession-
+  QuestionRequest         QuestionCommand            RequestQuestion(model,cmd)    Created
 ```
 
 ## Версионирование
 
-В ASP.NET Core используется prefix `/api/{context}`. При breaking change — `/api/v2/{context}`.
+В Go используется prefix `/api/{context}`. При breaking change — `/api/v2/{context}`.
 
 ## Шаблон артефакта
 

@@ -208,7 +208,13 @@ def _check_unlisted(
 
 
 def stage_paths(slug: str, manifest: dict[str, list[str]]) -> list[str]:
-    """Возвращает пути этапов в порядке склейки: сначала common, затем язык."""
+    """Возвращает пути этапов в порядке склейки: сначала common, затем язык.
+
+    Если имя этапа языка совпадает с именем common-этапа, вместо common-файла
+    берётся `languages/<язык>/<имя>.md` (переопределение), а common-версия не
+    клеится. Остальные common-этапы клеятся как обычно, затем — языковые этапы,
+    которых нет среди common (в порядке их объявления в stages.yaml).
+    """
     if slug not in manifest:
         raise BuildError(
             f"язык '{slug}' не описан в scripts/stages.yaml. "
@@ -229,13 +235,23 @@ def stage_paths(slug: str, manifest: dict[str, list[str]]) -> list[str]:
     # skill.md — роутер пакета навыка, он не является этапом и в артефакт не клеится.
     _check_unlisted(LANGUAGES_DIR / slug, lang_names, slug, exclude={Path(ROUTER_NAME).stem})
 
+    common_set = set(common_names)
+    lang_set = set(lang_names)
+
     paths: list[str] = []
+    # common-этапы в их порядке; при совпадении с языковым этапом — language-файл.
     for name in common_names:
-        rel = f"common/{name}.md"
+        if name in lang_set:
+            rel = f"languages/{slug}/{name}.md"
+        else:
+            rel = f"common/{name}.md"
         if not (ROOT / rel).is_file():
             raise BuildError(f"scripts/stages.yaml: нет файла {rel}")
         paths.append(rel)
+    # Языковые этапы, которых нет среди common, — в конце, в их порядке.
     for name in lang_names:
+        if name in common_set:
+            continue
         rel = f"languages/{slug}/{name}.md"
         if not (ROOT / rel).is_file():
             raise BuildError(f"scripts/stages.yaml: нет файла {rel}")

@@ -40,10 +40,10 @@ EventBus → DomainEvent (async)
 
 ```
 Client → GET /api/{context}/{id}
-  → {Context}Controller.GetById([FromRoute] Guid id)
-    → Get{Context}ByIdHandler.Handle(query, ct)
-      → IReadRepository.GetByIdAsync(id) → Read Store (READ)
-  → 200 OK (Response DTO)
+  → ChatHandler.Get{Context}ById(w, r)
+    → GetChatByIdHandler.Handle(ctx, id)
+      → eventStore.GetByID(ctx, id) → Event Store (READ)
+  → 200 OK (массив событий)
 ```
 
 **Критично:** Query Side читает только Read Store — НЕ Domain и НЕ Event Store.
@@ -94,26 +94,26 @@ Client → GET /api/{context}/{id}
 
 ### Event Bus
 
-| Реализация | DI-метод | Назначение |
-|-----------|---------|-----------|
-| InMemory | `AddEventBusInMemory()` | Dev, тесты |
-| Kafka | `AddEventBusKafka(options)` | Продакшен, высокая нагрузка |
-| Postgres | `AddEventBusPostgres(options)` | Dev/Single-фолбэк (outbox), не основной профиль |
+| Реализация | Конструктор | Назначение |
+|-----------|------------|-----------|
+| InMemory | `inmemory.New(logger)` | Dev, тесты |
+| Kafka | `kafka.New(options, logger)` | Продакшен, высокая нагрузка |
+| Postgres | `postgres.New(pool, options, logger)` | Dev/Single-фолбэк (outbox), не основной профиль |
 
 ### Command DB (Event Store)
 
-| Реализация | DI-метод | Стратегии |
-|-----------|---------|----------|
-| PostgreSQL | `AddEventStorePostgres<T,M>(conn, options)` | FullEventSourcing, SnapshotAfterN, StateOnly |
-| MongoDB | `AddEventStoreMongo<T,M>(options)` | FullEventSourcing, SnapshotAfterN, StateOnly |
+| Реализация | Конструктор | Стратегии |
+|-----------|------------|----------|
+| PostgreSQL | `cmdrepo.NewFullEventSourcingRepository(pool, opts, logger)` | FullEventSourcing, SnapshotAfterN, StateOnly |
+| MongoDB | `mongorepo.NewFullEventSourcingRepository(db, opts, logger)` | FullEventSourcing, SnapshotAfterN, StateOnly |
 
 ### Read Store
 
-| Реализация | DI-метод | Назначение |
-|-----------|---------|-----------|
-| PostgreSQL | `AddReadStorePostgres<T,M,Ctx>(conn, options)` | SQL, JOIN, транзакции |
-| Redis | `AddReadStoreRedis<T,M>(options)` | Key-value, TTL, субмс |
-| Scylla | `AddReadStoreScylla<T,M>(options)` | Горизонтальное масштабирование |
+| Реализация | Конструктор | Назначение |
+|-----------|------------|-----------|
+| PostgreSQL | `pgquery.NewReadRepository[T](pool, tableName, logger)` | SQL, JOIN, транзакции |
+| Redis | `redisquery.NewReadRepository[T](client, keyPrefix, logger)` | Key-value, TTL, субмс |
+| ScyllaDB | `scyllaquery.NewReadRepository[T](session, opts, modelType, logger)` | Горизонтальное масштабирование |
 
 ## PACELC и eventual consistency
 
