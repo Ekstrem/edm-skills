@@ -70,3 +70,14 @@ Npgsql трактует `DateTime`/`DateTimeOffset` в локальной зон
 EF Core InMemory-провайдер не реализует `ExecuteDeleteAsync`/`ExecuteUpdateAsync`.
 В тестах на InMemory не вызывай bulk-операции: используй обычный `Remove` + `SaveChanges`
 или реальную СУБД (Testcontainers).
+
+### `dotnet test` падает в песочнице (testhost, Win32Exception 5)
+
+`dotnet test` в DSH-песочнице не доходит до выполнения: testhost падает с
+`Win32Exception (5)` при `Process.OpenProcess` (запрет открывать handle родительского
+процесса). Это ограничение среды, не дефект проекта.
+
+**Санкционированный обход:** собственный минимальный console-раннер (`Journal.TestRunner`
+или `tools/testrunner`), который грузит тестовую сборку и прогоняет xUnit напрямую
+(без testhost). В CI вне песочницы — обычный `dotnet test`. Не объявляй «тесты зелёные»
+без фактического прогона раннером.
