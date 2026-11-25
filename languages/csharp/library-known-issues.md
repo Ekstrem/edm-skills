@@ -93,3 +93,11 @@ xunit.console недоступен. Их результат считается �
 расходиться с настоящим xunit в резолве зависимостей и конфигурации. Объявлять «тесты
 зелёные» допустимо только по прогону xunit.console или `dotnet test` вне песочницы
 (CI), а фолбэк-прогон помечай как «неофициальный» в отчёте.
+
+### Резолв тестовых сборок: ProjectReference на Domain.Tests
+
+xunit.console и `dotnet test` запускают сборку по её `deps.json`. Если IntegrationTests
+использует типы из `{Context}.Domain.Tests` (например, тестовый composition root с
+`AggregateCompletion`), без **ProjectReference** на Domain.Tests сборка падает вне
+testhost: `deps.json` не резолвит зависимость. Явная ссылка + регистрация в тестовом
+composition root чинит это (найдено в BE-156, Journal).
